@@ -4518,6 +4518,11 @@ void ZedCamera::threadFunc_zedGrab()
             get_logger(),
             "Connection issue detected: "
               << sl::toString(mGrabStatus).c_str());
+          rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr camera_reset_publisher_ = 
+            create_publisher<std_msgs::msg::Bool>("/front/camera_reset", 10);
+          auto msg = std_msgs::msg::Bool();
+          msg.data = true;
+          camera_reset_publisher_->publish(msg);
           rclcpp::sleep_for(1s);
           continue;
         } else if (mGrabStatus == sl::ERROR_CODE::CAMERA_NOT_INITIALIZED ||
