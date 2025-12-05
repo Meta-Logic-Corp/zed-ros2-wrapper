@@ -6090,6 +6090,11 @@ void ZedCamera::threadFunc_zedGrab()
               " sec ('general.camera_timeout_sec' x 'general.camera_max_reconnect')");
             break;
           }
+          rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr camera_reset_publisher_ = 
+            create_publisher<std_msgs::msg::Bool>("/front/camera_reset", 10);
+          auto msg = std_msgs::msg::Bool();
+          msg.data = true;
+          camera_reset_publisher_->publish(msg);
           rclcpp::sleep_for(1s);
           continue;
         } else if (mGrabStatus == sl::ERROR_CODE::CAMERA_NOT_INITIALIZED ||
