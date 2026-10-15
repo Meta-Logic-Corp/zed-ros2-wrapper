@@ -69,7 +69,6 @@
 #include <zed_msgs/srv/save_area_memory.hpp>
 
 #ifdef FOUND_ISAAC_ROS_NITROS
-  #include "isaac_ros_managed_nitros/managed_nitros_publisher.hpp"
   #include "isaac_ros_nitros_image_type/nitros_image.hpp"
 #endif
 
@@ -113,8 +112,15 @@ const float NOT_VALID_TEMP = -273.15f;
 // ----> Typedefs to simplify declarations
 
 #ifdef FOUND_ISAAC_ROS_NITROS
-typedef std::shared_ptr<nvidia::isaac_ros::nitros::ManagedNitrosPublisher<
-      nvidia::isaac_ros::nitros::NitrosImage>> nitrosImgPub;
+using nitrosImgPub = rclcpp::Publisher<nvidia::isaac_ros::nitros::NitrosImage>::SharedPtr;
+
+inline nitrosImgPub createNitrosImagePublisher(
+  rclcpp::Node * node, const std::string & topic, const rclcpp::QoS & qos)
+{
+  rclcpp::PublisherOptions options;
+  options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
+  return node->create_publisher<nvidia::isaac_ros::nitros::NitrosImage>(topic, qos, options);
+}
 #endif
 
 typedef std::shared_ptr<sensor_msgs::msg::CameraInfo> camInfoMsgPtr;

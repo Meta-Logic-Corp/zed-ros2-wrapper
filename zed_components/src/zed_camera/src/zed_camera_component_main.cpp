@@ -9878,13 +9878,7 @@ void ZedCamera::callback_setRoi(
       } else {
 #ifdef FOUND_ISAAC_ROS_NITROS
         if (!mNitrosPubRoiMask) {
-          mNitrosPubRoiMask = std::make_shared<
-            nvidia::isaac_ros::nitros::ManagedNitrosPublisher<
-              nvidia::isaac_ros::nitros::NitrosImage>>(
-            this, mRoiMaskTopic,
-            nvidia::isaac_ros::nitros::nitros_image_bgra8_t::
-            supported_type_name,
-            nvidia::isaac_ros::nitros::NitrosDiagnosticsConfig(), mQos);
+          mNitrosPubRoiMask = createNitrosImagePublisher(this, mRoiMaskTopic, mQos);
           RCLCPP_INFO_STREAM(
             get_logger(),
             " * Advertised on topic: " << mRoiMaskTopic);

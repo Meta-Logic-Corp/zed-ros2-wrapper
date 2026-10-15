@@ -298,10 +298,7 @@ void ZedCamera::initVideoDepthPublishers()
 #ifdef FOUND_ISAAC_ROS_NITROS
     // Nitros publishers lambda
     auto make_nitros_img_pub = [&](const std::string & topic) {
-        auto ret = std::make_shared<nvidia::isaac_ros::nitros::ManagedNitrosPublisher<
-              nvidia::isaac_ros::nitros::NitrosImage>>(
-          this, topic, nvidia::isaac_ros::nitros::nitros_image_bgra8_t::supported_type_name,
-          nvidia::isaac_ros::nitros::NitrosDiagnosticsConfig(), mQos);
+        auto ret = createNitrosImagePublisher(this, topic, mQos);
         RCLCPP_INFO_STREAM(get_logger(), " * Advertised on topic: " << topic);
         RCLCPP_INFO_STREAM(get_logger(), " * Advertised on topic: " << topic + "/nitros");
         return ret;
@@ -339,10 +336,7 @@ void ZedCamera::initVideoDepthPublishers()
       mNitrosPubRoiMask = make_nitros_img_pub(mRoiMaskTopic);
     }
     if (mPublishDepthMap) {
-      mNitrosPubDepth = std::make_shared<nvidia::isaac_ros::nitros::ManagedNitrosPublisher<
-            nvidia::isaac_ros::nitros::NitrosImage>>(
-        this, mDepthTopic, nvidia::isaac_ros::nitros::nitros_image_32FC1_t::supported_type_name,
-        nvidia::isaac_ros::nitros::NitrosDiagnosticsConfig(), mQos);
+      mNitrosPubDepth = createNitrosImagePublisher(this, mDepthTopic, mQos);
       RCLCPP_INFO_STREAM(get_logger(), " * Advertised on topic: " << mDepthTopic);
       RCLCPP_INFO_STREAM(get_logger(), " * Advertised on topic: " << mDepthTopic + "/nitros");
     }
@@ -2403,13 +2397,13 @@ void ZedCamera::publishImageWithInfo(
     header.stamp = mUsePubTimestamps ? get_clock()->now() : t;
     header.frame_id = imgFrameId;
 
-    auto encoding = img_encodings::BGRA8; // Default encoding
+    auto encoding = sensor_msgs::image_encodings::BGRA8; // Default encoding
     if (img.getDataType() == sl::MAT_TYPE::U8_C1) {
-      encoding = img_encodings::MONO8; // Mono image
+      encoding = sensor_msgs::image_encodings::MONO8; // Mono image
     } else if (img.getDataType() == sl::MAT_TYPE::U8_C3) {
-      encoding = img_encodings::BGR8; // BGR image
+      encoding = sensor_msgs::image_encodings::BGR8; // BGR image
     } else if (img.getDataType() == sl::MAT_TYPE::F32_C1) {
-      encoding = img_encodings::TYPE_32FC1; // Float image
+      encoding = sensor_msgs::image_encodings::TYPE_32FC1; // Float image
     }
 
     // Create NitrosImage wrapping CUDA buffer
@@ -2546,7 +2540,7 @@ void ZedCamera::publishDepthMapWithInfo(
       nvidia::isaac_ros::nitros::NitrosImage nitros_image =
         nvidia::isaac_ros::nitros::NitrosImageBuilder()
         .WithHeader(header)
-        .WithEncoding(img_encodings::TYPE_32FC1)
+        .WithEncoding(sensor_msgs::image_encodings::TYPE_32FC1)
         .WithDimensions(depth.getHeight(), depth.getWidth())
         .WithGpuData(dbuffer)
         //.WithGpuData(depth.getPtr<sl::float1>(sl::MEM::GPU)) // TODO: Enable direct GPU memory sharing when supported by Isaac ROS.
